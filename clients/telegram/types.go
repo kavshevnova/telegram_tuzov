@@ -1,4 +1,4 @@
-package telegram
+package tgClient
 
 type UpdateResponse struct {
 	//response - ответ

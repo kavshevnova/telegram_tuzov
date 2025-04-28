@@ -9,7 +9,7 @@ import (
 )
 
 type Processor struct {
-	tg      *telegram.Client //тг
+	tg      *tgClient.Client //тг
 	offset  int              //смещение
 	storage storage.Storage  //место хранения
 }
@@ -22,7 +22,7 @@ type Meta struct {
 var ErrUnknownEvent = errors.New("unknown event")
 var ErrUnknownMetaType = errors.New("unknown meta type")
 
-func New(client *telegram.Client, storage storage.Storage) *Processor {
+func New(client *tgClient.Client, storage storage.Storage) *Processor {
 	return &Processor{
 		tg:      client,
 		storage: storage,
@@ -80,7 +80,7 @@ func meta(event events.Event) (Meta, error) {
 	return res, nil
 }
 
-func event(upd telegram.Update) events.Event {
+func event(upd tgClient.Update) events.Event {
 	//В чем разница между ивентами и апдейтами: апдейты это параметр телеграма и они относятся только к нему, а ивент это более общая сущность, в нее мы можем преобразовывать все что получаем от других мессенжеров, в каком бы формате они не предоставляли нам информацию.
 	updType := fetchType(upd)
 	res := events.Event{
@@ -96,14 +96,14 @@ func event(upd telegram.Update) events.Event {
 	return res
 }
 
-func fetchText(upd telegram.Update) string {
+func fetchText(upd tgClient.Update) string {
 	if upd.Message != nil {
 		return ""
 	}
 	return upd.Message.Text
 }
 
-func fetchType(upd telegram.Update) events.Type {
+func fetchType(upd tgClient.Update) events.Type {
 	if upd.Message == nil {
 		return events.Unknown
 	}

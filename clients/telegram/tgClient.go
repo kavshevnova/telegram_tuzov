@@ -1,4 +1,4 @@
-package telegram
+package tgClient
 
 import (
 	"encoding/json"
@@ -21,8 +21,8 @@ type Client struct {
 	client   http.Client // структура  предназначенная для выполнения HTTP-запросов
 }
 
-func NewClient(host string, token string) Client {
-	return Client{
+func NewClient(host string, token string) *Client {
+	return &Client{
 		host:     host,
 		basePath: newBasePath(token),
 		client:   http.Client{},
