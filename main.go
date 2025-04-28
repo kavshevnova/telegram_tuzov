@@ -40,4 +40,5 @@ func musttoken() string {
 	if *token == "" {
 		log.Fatal("токена нема")
 	}
+	return *token
 }

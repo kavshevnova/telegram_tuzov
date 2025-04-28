@@ -79,16 +79,16 @@ func (s Storage) PickRandom(userName string) (page *storage.Page, err error) {
 
 }
 
-func (s Storage) Remove(p *storage.Page) (bool, error) {
+func (s Storage) Remove(p *storage.Page) error {
 	fileName, err := fileName(p)
 	if err != nil {
-		return false, e.WrapIfErr("can't remove page", err)
+		return e.WrapIfErr("can't remove page", err)
 	}
 	path := filepath.Join(s.basePath, fileName)
 	if err := os.Remove(path); err != nil {
-		return false, e.WrapIfErr(fmt.Sprintf("can't remove page %s", path), err)
+		return e.WrapIfErr(fmt.Sprintf("can't remove page %s", path), err)
 	}
-	return true, nil
+	return nil
 }
 
 func (s Storage) IsExists(p *storage.Page) (bool, error) {
