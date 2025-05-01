@@ -15,8 +15,8 @@ type Processor struct {
 }
 
 type Meta struct {
-	ChatID   int
-	Username string
+	ChatID   int    `json:"chat_id"`
+	Username string `json:"username"`
 }
 
 var ErrUnknownEvent = errors.New("unknown event")
@@ -84,11 +84,11 @@ func event(upd tgClient.Update) events.Event {
 	//В чем разница между ивентами и апдейтами: апдейты это параметр телеграма и они относятся только к нему, а ивент это более общая сущность, в нее мы можем преобразовывать все что получаем от других мессенжеров, в каком бы формате они не предоставляли нам информацию.
 	updType := fetchType(upd)
 	res := events.Event{
-		Type: fetchType(upd),
+		Type: updType,
 		Text: fetchText(upd),
 	}
 	if updType == events.Message {
-		res.Meta = &Meta{
+		res.Meta = Meta{
 			ChatID:   upd.Message.Chat.ID,
 			Username: upd.Message.From.Username,
 		}
@@ -97,7 +97,7 @@ func event(upd tgClient.Update) events.Event {
 }
 
 func fetchText(upd tgClient.Update) string {
-	if upd.Message != nil {
+	if upd.Message == nil {
 		return ""
 	}
 	return upd.Message.Text

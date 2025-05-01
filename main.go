@@ -1,25 +1,36 @@
 package main
 
 import (
+	"context"
 	"flag"
 	tgClient "github.com/kavshevnova/telegrambot_tuzov/clients/telegram"
 	event_consumer "github.com/kavshevnova/telegrambot_tuzov/consumer/event-consumer"
 	"github.com/kavshevnova/telegrambot_tuzov/events/telegram"
-	"github.com/kavshevnova/telegrambot_tuzov/storage/files"
+	"github.com/kavshevnova/telegrambot_tuzov/storage/sqlite"
 	"log"
 )
 
 const (
-	tgBotHost   = "api.telegram.org"
-	storagePath = "storage"
-	batchSize   = 100
+	tgBotHost         = "api.telegram.org"
+	sqliteStoragePath = "data/sqlite/storage.db"
+	batchSize         = 100
 )
 
 func main() {
 
+	s, err := sqlite.New(sqliteStoragePath)
+	if err != nil {
+		log.Fatal("can't connect sqlite storage: ", err)
+	}
+	//используя туду мы говорим что мы еще не определились с тем контекстом который мы будем использовать и потом мы можем здесь же его заменить на другой
+	//если мы используем контекст бэкграунд мы четко говорим что здесь нужен контекст который никак нас не ограничивает, дальше от него будет унаследован другой контекст типо дедлайн или таймаут
+	if err := s.Init(context.TODO()); err != nil {
+		log.Fatal("can't init sqlite storage: ", err)
+	}
+
 	eventsProcessor := telegram.New(
 		tgClient.NewClient(tgBotHost, musttoken()),
-		files.New(storagePath),
+		s,
 	)
 
 	log.Println("Starting telegram bot")

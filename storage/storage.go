@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"crypto/sha1"
 	"errors"
 	"fmt"
@@ -10,10 +11,10 @@ import (
 
 type Storage interface {
 	//storage - место хранения
-	Save(p *Page) error                        //сохранять страницу по ссылке
-	PickRandom(userName string) (*Page, error) //возвращать страницу пользователю
-	Remove(p *Page) error                      //удалить
-	IsExists(p *Page) (bool, error)            //существует ли та или иная страница
+	Save(ctx context.Context, p *Page) error                        //сохранять страницу по ссылке
+	PickRandom(ctx context.Context, userName string) (*Page, error) //возвращать страницу пользователю
+	Remove(ctx context.Context, p *Page) error                      //удалить
+	IsExists(ctx context.Context, p *Page) (bool, error)            //существует ли та или иная страница
 }
 
 type Page struct {
