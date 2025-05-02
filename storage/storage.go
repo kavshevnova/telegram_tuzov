@@ -13,8 +13,9 @@ type Storage interface {
 	//storage - место хранения
 	Save(ctx context.Context, p *Page) error                        //сохранять страницу по ссылке
 	PickRandom(ctx context.Context, userName string) (*Page, error) //возвращать страницу пользователю
-	Remove(ctx context.Context, p *Page) error                      //удалить
-	IsExists(ctx context.Context, p *Page) (bool, error)            //существует ли та или иная страница
+	PickAll(ctx context.Context, userName string) ([]*Page, error)
+	Remove(ctx context.Context, p *Page) error           //удалить
+	IsExists(ctx context.Context, p *Page) (bool, error) //существует ли та или иная страница
 }
 
 type Page struct {

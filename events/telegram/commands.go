@@ -3,6 +3,7 @@ package telegram
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/kavshevnova/telegrambot_tuzov/lib/e"
 	"github.com/kavshevnova/telegrambot_tuzov/storage"
 	"log"
@@ -11,9 +12,10 @@ import (
 )
 
 const (
-	RndCmd   = "/rnd"
-	HelpCmd  = "/help"
-	StartCmd = "/start"
+	RndCmd    = "/rnd"
+	RndAllCmd = "/rnd_all"
+	HelpCmd   = "/help"
+	StartCmd  = "/start"
 )
 
 func (p *Processor) doCmd(text string, chatID int, username string) error {
@@ -27,6 +29,8 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 	switch text {
 	case RndCmd:
 		return p.sendRandom(chatID, username)
+	case RndAllCmd:
+		return p.sendAll(chatID, username)
 	case HelpCmd:
 		return p.sendHelp(chatID)
 	case StartCmd:
@@ -74,7 +78,26 @@ func (p *Processor) sendRandom(chatID int, username string) (err error) {
 	if err := p.tg.SendMessage(chatID, page.URL); err != nil {
 		return err
 	}
-	return p.storage.Remove(context.Background(), page)
+	return nil
+}
+
+func (p *Processor) sendAll(chatID int, username string) (err error) {
+	defer func() { err = e.WrapIfErr("Can't do sendAll", err) }()
+	pages, err := p.storage.PickAll(context.Background(), username)
+	if err != nil && !errors.Is(err, storage.ErrNoSavedPages) {
+		return err
+	}
+	if errors.Is(err, storage.ErrNoSavedPages) {
+		return p.tg.SendMessage(chatID, msgNoSavedPage)
+	}
+	var message strings.Builder
+	for i, page := range pages {
+		message.WriteString(fmt.Sprintf("%d. %s\n", i+1, page.URL))
+	}
+	if err := p.tg.SendMessage(chatID, message.String()); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (p *Processor) sendStart(chatID int) error {

@@ -39,12 +39,12 @@ func (s *Storage) Save(ctx context.Context, p *storage.Page) error {
 }
 
 func (s *Storage) PickRandom(ctx context.Context, userName string) (p *storage.Page, err error) {
-	q := `SELECT URL FROM pages WHERE Username = ? ORDER BY RANDOM() LIMIT 1`
+	q := `SELECT URL FROM pages WHERE Username = ? ORDER BY random() LIMIT 1`
 	//в функцию скан передается ссылка на переменную в которуюю мы хотим положить результаты, так как у нас 1 запись то переменная одна
 	var url string
 	s.db.QueryRowContext(ctx, q, userName).Scan(&url)
 	if err == sql.ErrNoRows {
-		return nil, nil
+		return nil, storage.ErrNoSavedPages
 	}
 	if err != nil {
 		return nil, fmt.Errorf("can't pick random page: %w", err)
@@ -53,6 +53,35 @@ func (s *Storage) PickRandom(ctx context.Context, userName string) (p *storage.P
 		URL:      url,
 		Username: userName,
 	}, nil
+}
+
+func (s *Storage) PickAll(ctx context.Context, userName string) (p []*storage.Page, err error) {
+	q := `SELECT URL FROM pages WHERE Username = ? ORDER BY random()`
+	//в функцию скан передается ссылка на переменную в которуюю мы хотим положить результаты, так как у нас 1 запись то переменная одна
+
+	rows, err := s.db.QueryContext(ctx, q, userName)
+	if err == sql.ErrNoRows {
+		return nil, storage.ErrNoSavedPages
+	}
+	if err != nil {
+		return nil, fmt.Errorf("can't pick all pages: %w", err)
+	}
+	defer rows.Close()
+	var pages []*storage.Page
+	for rows.Next() {
+		var url string
+		if err := rows.Scan(&url); err != nil {
+			return nil, fmt.Errorf("can't scan page: %w", err)
+		}
+		pages = append(pages, &storage.Page{URL: url, Username: userName})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+	if len(pages) == 0 {
+		return nil, storage.ErrNoSavedPages
+	}
+	return pages, nil
 }
 
 func (s *Storage) Remove(ctx context.Context, p *storage.Page) error {
